@@ -2,9 +2,15 @@ import Image from "next/image";
 import { ThemeToggle } from "../components/theme-toggle";
 import { UserNav } from "../components/user-nav";
 import { auth } from "./(auth)/auth";
+import { redirect } from "next/navigation";
 
 export default async function Home() {
   const session = await auth();
+  
+  // they say not to trust middleware for auth
+  if (!session) {
+    redirect("/login");
+  }
   
   return (
     <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
@@ -24,7 +30,7 @@ export default async function Home() {
         {session ? (
           <div className="text-center sm:text-left">
             <h1 className="text-2xl font-bold mb-4">
-              Welcome, {session.user?.name || session.user?.email}!
+              Welcome, {session.user?.name?.split(" ")[1] || session.user?.email}!
             </h1>
             <p className="text-muted-foreground">
               You are successfully authenticated with Microsoft Entra ID.
