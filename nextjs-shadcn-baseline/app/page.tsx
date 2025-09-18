@@ -9,7 +9,7 @@ export default async function Home() {
   
   // they say not to trust middleware for auth
   if (!session) {
-    redirect("/login");
+    redirect("/api/signin");
   }
   
   return (

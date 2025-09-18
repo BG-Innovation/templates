@@ -2,27 +2,24 @@ import { NextResponse } from "next/server"
 import { auth } from "./app/(auth)/auth"
 
 export default auth((request) => {
-  const { nextUrl } = request
-  const isLoggedIn = !!request.auth
+    const isSignedIn = !!request.auth;
+    const url = request.nextUrl;
 
-  // Public routes that don't require authentication
-  const isPublicRoute = nextUrl.pathname === '/login' || 
-                        nextUrl.pathname.startsWith('/api/auth')
+    // Allow access to auth API routes
+    if (url.pathname.startsWith("/api/auth") || url.pathname.startsWith("/api/signin")) {
+      return NextResponse.next();
+    }
 
-  // If user is not logged in and trying to access protected route
-  if (!isLoggedIn && !isPublicRoute) {
-    return NextResponse.redirect(new URL('/login', nextUrl))
-  }
+    // Redirect unauthenticated users directly to signin API
+    if (!isSignedIn) {
+      const signinUrl = new URL("/api/signin", url);
+      signinUrl.searchParams.set("callbackUrl", url.pathname + url.search);
+      return NextResponse.redirect(signinUrl);
+    }
 
-  // If user is logged in and trying to access login page, redirect to home
-  if (isLoggedIn && nextUrl.pathname === '/login') {
-    return NextResponse.redirect(new URL('/', nextUrl))
-  }
-
-  return NextResponse.next()
+    return NextResponse.next();
 })
 
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
-  // matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 }
